@@ -1,17 +1,17 @@
-import 'package:etherwallet/qrcode_reader_page.dart';
-import 'package:etherwallet/service/configuration_service.dart';
-import 'package:etherwallet/wallet_create_page.dart';
-import 'package:etherwallet/wallet_import_page.dart';
-import 'package:etherwallet/wallet_main_page.dart';
-import 'package:etherwallet/wallet_transfer_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:provider/provider.dart';
 
-import 'context/wallet/wallet_provider.dart';
 import 'context/setup/wallet_setup_provider.dart';
 import 'context/transfer/wallet_transfer_provider.dart';
-import 'intro_page.dart';
+import 'context/wallet/wallet_provider.dart';
+import 'presentation/screens/intro_page.dart';
+import 'presentation/screens/wallet_create_page.dart';
+import 'presentation/screens/wallet_import_page.dart';
+import 'presentation/screens/wallet_main_page.dart';
+import 'presentation/screens/wallet_transfer_page.dart';
+import 'presentation/screens/qrcode_reader_page.dart';
+import 'service/configuration_service.dart';
 
 Map<String, WidgetBuilder> getRoutes(context) {
   return {

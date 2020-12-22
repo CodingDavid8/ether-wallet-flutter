@@ -1,7 +1,8 @@
-import 'package:etherwallet/components/copyButton/copy_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
+import '../copyButton/copy_button.dart';
 
 class DisplayMnemonic extends HookWidget {
   DisplayMnemonic({this.mnemonic, this.onNext});

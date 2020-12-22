@@ -1,6 +1,7 @@
-import 'package:etherwallet/utils/wallet_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../utils/wallet_icons.dart';
 
 class MainMenu extends StatelessWidget {
   MainMenu({this.address, this.onReset});

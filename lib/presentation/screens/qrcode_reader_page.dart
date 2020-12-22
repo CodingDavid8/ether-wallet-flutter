@@ -7,7 +7,7 @@ import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'utils/detector_painters.dart';
+import '../../utils/detector_painters.dart';
 
 typedef OnScanned = void Function(String address);
 
