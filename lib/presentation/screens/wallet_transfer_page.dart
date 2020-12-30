@@ -39,11 +39,11 @@ class WalletTransferPage extends HookWidget {
           : TransferForm(
               address: qrcodeAddress.value,
               onSubmit: (address, amount) async {
-                var success = await transferStore.transfer(address, amount);
+                // var success = await transferStore.transfer(address, amount);
 
-                if (success) {
-                  Navigator.popUntil(context, ModalRoute.withName('/'));
-                }
+                // if (success) {
+                //   Navigator.popUntil(context, ModalRoute.withName('/'));
+                // }
               },
             ),
     );

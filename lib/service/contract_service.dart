@@ -15,6 +15,36 @@ abstract class IContractService {
   StreamSubscription listenTransfer(TransferEvent onTransfer);
 }
 
+///https://github.com/deusfinance/Automatic-market-maker-AMM/blob/master/AutomaticMarketMaker.sol
+class DEUSContractService {
+  DEUSContractService(this.client, this.contract);
+
+  final Web3Client client;
+  final DeployedContract contract;
+
+  ContractFunction _buyFunction() => contract.function('buy');
+
+  Future<Credentials> getCredentials(String privateKey) =>
+      client.credentialsFromPrivateKey(privateKey);
+
+  Future<EtherAmount> getEthBalance(EthereumAddress from) async {
+    return await client.getBalance(from);
+  }
+
+  Future<void> buyToken(BigInt tokenAmount) async {
+    final response = await client.call(
+      contract: contract,
+      function: _buyFunction(),
+      params: [tokenAmount],
+    );
+    return response.first as BigInt;
+  }
+
+  Future<void> dispose() async {
+    await client.dispose();
+  }
+}
+
 class ContractService implements IContractService {
   ContractService(this.client, this.contract);
 
@@ -75,7 +105,6 @@ class ContractService implements IContractService {
       function: _balanceFunction(),
       params: [from],
     );
-
     return response.first as BigInt;
   }
 
