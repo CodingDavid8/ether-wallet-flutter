@@ -20,8 +20,8 @@ Future<List<SingleChildCloneableWidget>> createProviders(
 
   final configurationService = ConfigurationService(sharedPrefs);
   final addressService = AddressService(configurationService);
-  final contract = await ContractParser.fromAssets(
-      'TargaryenCoin.json', params.contractAddress);
+  final contract =
+      await ContractParser.fromAssets('DEUSCoin.json', params.contractAddress);
 
   // final contractService = ContractService(client, contract);
   final deusContractService = DEUSContractService(client, contract);

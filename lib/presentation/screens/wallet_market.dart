@@ -12,7 +12,11 @@ class MarketScreen extends HookWidget {
       body: Center(
         child: FlatButton(
           child: Text("Buy 100 DEUS"),
-          onPressed: () {},
+          onPressed: () async {
+            print("Buying 100 DEUS...");
+            await transferStore.buy('100');
+            print("Buying process finished.");
+          },
         ),
       ),
     );

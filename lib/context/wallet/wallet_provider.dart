@@ -21,7 +21,7 @@ class WalletProvider extends ContextProviderWidget<WalletHandler> {
         useReducer<Wallet, WalletAction>(reducer, initialState: Wallet());
 
     final addressService = Provider.of<AddressService>(context);
-    final contractService = Provider.of<ContractService>(context);
+    final contractService = Provider.of<DEUSContractService>(context);
     final configurationService = Provider.of<ConfigurationService>(context);
     final handler = useMemoized(
       () => WalletHandler(

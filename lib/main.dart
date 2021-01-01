@@ -26,7 +26,7 @@ class MainApp extends StatelessWidget {
         providers: stores,
         child: MaterialApp(
           title: 'EtherWallet',
-          initialRoute: '/',
+          initialRoute: '/market',
           routes: getRoutes(context),
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: analytics),

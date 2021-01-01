@@ -18,7 +18,7 @@ class WalletHandler {
   final Store<Wallet, WalletAction> _store;
   final AddressService _addressService;
   final ConfigurationService _configurationService;
-  final ContractService _contractService;
+  final DEUSContractService _contractService;
 
   Wallet get state => _store.state;
 
@@ -55,25 +55,26 @@ class WalletHandler {
   Future<void> _initialise() async {
     await this.fetchOwnBalance();
 
-    _contractService.listenTransfer((from, to, value) async {
-      var fromMe = from.toString() == state.address;
-      var toMe = to.toString() == state.address;
+    // _contractService.listenTransfer((from, to, value) async {
+    //   bool fromMe = from.toString() == state.address;
+    //   bool toMe = to.toString() == state.address;
 
-      if (!fromMe && !toMe) {
-        return;
-      }
+    //   if (!fromMe && !toMe) {
+    //     return;
+    //   }
 
-      print('======= balance updated =======');
+    //   print('======= balance updated =======');
 
-      await fetchOwnBalance();
-    });
+    //   await fetchOwnBalance();
+    // });
   }
 
   Future<void> fetchOwnBalance() async {
     _store.dispatch(UpdatingBalance());
 
-    var tokenBalance = await _contractService
-        .getTokenBalance(web3.EthereumAddress.fromHex(state.address));
+    var tokenBalance = BigInt.parse('0');
+    //  await _contractService
+    //     .getTokenBalance(web3.EthereumAddress.fromHex(state.address));
 
     var ethBalance = await _contractService
         .getEthBalance(web3.EthereumAddress.fromHex(state.address));
