@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as Math;
+import 'package:etherwallet/utils/eth_amount_formatter.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:etherwallet/utils/contract_parser.dart';
@@ -56,13 +58,13 @@ final Map<String, dynamic> paths;
 
     static _getNetworkName(int chainId) => SwapService.networkNames[chainId];
 
-    bool _isDeus(String element) => element == this.getTokenAddr("deus");
+    bool _isDeus(String element) => EthereumAddress.fromHex(element) == this.getTokenAddr("deus");
 
     bool checkWallet() => this.account!=null && this.chainId!=null;
 
-    getAddr(String tokenName) => addrs[tokenName][this.chainId.toString()];
+    EthereumAddress getAddr(String tokenName) => EthereumAddress.fromHex(addrs[tokenName][this.chainId.toString()]);
 
-    getTokenAddr(String tokenName) => addrs["token"][tokenName][this.chainId.toString()];
+    EthereumAddress getTokenAddr(String tokenName) => EthereumAddress.fromHex(addrs["token"][tokenName][this.chainId.toString()]);
 
     static const Map<String, int> TokensMaxDigit = {
         "wbtc": 8,
@@ -76,11 +78,12 @@ final Map<String, dynamic> paths;
     };
 
     String _getWei(dynamic number, [token = "eth"]) {
-        var max = SwapService.TokensMaxDigit.containsKey(token) ? SwapService.TokensMaxDigit[token] : 18;
-        var value = number.runtimeType == String  ? double.parse(number).toStringAsFixed(18): number.toStringAsFixed(18);
-        var ans = Web3.utils.toWei(value.toString(), 'ether');
-        ans = ans.substr(0, ans.length - (18 - max));
-        return ans.toString();
+        final int maxDigit = SwapService.TokensMaxDigit.containsKey(token) ? SwapService.TokensMaxDigit[token] : 18;
+        final String value = number.runtimeType == String ? double.parse(number).toStringAsFixed(18): number.toStringAsFixed(18);
+        String ans = EtherAmount.fromUnitAndValue(EtherUnit.ether, value).getValueInUnit(EtherUnit.wei).toString();
+        // Web3.utils.toWei(value.toString(), 'ether');
+        ans = ans.substring(0, ans.length - (18 - maxDigit));
+        return ans;
     }
 
     String _fromWei(value, token) {
@@ -117,7 +120,7 @@ final Map<String, dynamic> paths;
         if (tokenName == "eth") {
             return this.getEtherBalance(account);
         }
-        const TokenContract = new this.infuraWeb3.eth.Contract(abis["token"], this.getTokenAddr(tokenName));
+        final TokenContract = DeployedContract(abis["token"], this.getTokenAddr(tokenName)) ;
         return TokenContract.methods.balanceOf(account).call().then((balance) {
             return this._fromWei(balance, tokenName);
         });
@@ -131,7 +134,7 @@ final Map<String, dynamic> paths;
 
         var metamaskWeb3 = new Web3(Web3.givenProvider);
         const TokenContract = new metamaskWeb3.eth.Contract(abis["token"], this.getTokenAddr(token));
-        amount = Math.max(amount, 10 ^ 20);
+        amount = max(amount, 10 ^ 20);
 
         return TokenContract.methods.approve(this.getAddr("deus_swap_contract"), this._getWei(amount, token))
             .send({ from: this.account })
@@ -146,7 +149,7 @@ final Map<String, dynamic> paths;
         final account = this.account;
         if (token == "eth") return 9999;
 
-        const TokenContract = new this.infuraWeb3.eth.Contract(abis["token"], this.getTokenAddr(token));
+        // const TokenContract = this.infuraWeb3.eth.Contract(abis["token"], this.getTokenAddr(token));
         return TokenContract.methods.allowance(account, this.getAddr("deus_swap_contract"))
             .call().then((amount) {
                 var result = this._fromWei(amount, token);
@@ -164,7 +167,9 @@ final Map<String, dynamic> paths;
         var metamaskWeb3 = new Web3(Web3.givenProvider);
         const DeusSwapContract = new metamaskWeb3.eth.Contract(abis["deus_swap_contract"], this.getAddr("deus_swap_contract"));
 
-        var path = paths[fromToken][toToken];
+        List<String> path = paths[fromToken][toToken];
+        
+      
 
         if (fromToken == 'coinbase') {
             if (toToken == 'deus') {
@@ -173,7 +178,7 @@ final Map<String, dynamic> paths;
                         from: this.account
                     }).once('transactionHash', () => listener("transactionHash"))
                     .once('receipt', () => listener("receipt"))
-                    .once('error', () => listener("error"))
+                    .once('error', () => listener("error"));
             } else if (toToken == 'eth') {
 
                 return DeusSwapContract.methods.swapTokensForEth(this._getWei(tokenAmount, fromToken), 2, [])
@@ -181,7 +186,7 @@ final Map<String, dynamic> paths;
                         from: this.account
                     }).once('transactionHash', () => listener("transactionHash"))
                     .once('receipt', () => listener("receipt"))
-                    .once('error', () => listener("error"))
+                    .once('error', () => listener("error"));
             } else {
                 if (path[2] == this.getTokenAddr("weth")) {
                     var path1 = path.slice(2);
@@ -190,7 +195,7 @@ final Map<String, dynamic> paths;
                             from: this.account
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
 
                 } else {
                     var path1 = path.slice(1);
@@ -199,7 +204,7 @@ final Map<String, dynamic> paths;
                             from: this.account
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
                 }
             }
 
@@ -210,7 +215,7 @@ final Map<String, dynamic> paths;
                         from: this.account
                     }).once('transactionHash', () => listener("transactionHash"))
                     .once('receipt', () => listener("receipt"))
-                    .once('error', () => listener("error"))
+                    .once('error', () => listener("error"));
             } else if (fromToken == 'eth') {
                 return DeusSwapContract.methods.swapEthForTokens([], 2)
                     .send({
@@ -218,7 +223,7 @@ final Map<String, dynamic> paths;
                         value: this._getWei(tokenAmount, fromToken)
                     }).once('transactionHash', () => listener("transactionHash"))
                     .once('receipt', () => listener("receipt"))
-                    .once('error', () => listener("error"))
+                    .once('error', () => listener("error"));
             } else {
                 if (path[path.length - 3] == this.getTokenAddr("weth")) {
                     var path1 = path.slice(0, path.length - 2);
@@ -228,7 +233,7 @@ final Map<String, dynamic> paths;
                             from: this.account
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
                 } else {
                     var path1 = path.slice(0, path.length - 1);
 
@@ -237,7 +242,7 @@ final Map<String, dynamic> paths;
                             from: this.account
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
                 }
             }
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,7 +259,7 @@ final Map<String, dynamic> paths;
                             value: this._getWei(tokenAmount, fromToken)
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
                 } else {
                     // only uniswap
                     return DeusSwapContract.methods.swapEthForTokens(path, 1)
@@ -263,7 +268,7 @@ final Map<String, dynamic> paths;
                             value: this._getWei(tokenAmount, fromToken)
                         }).on('transactionHash', () => listener("transactionHash"))
                         .on('receipt', () => listener("receipt"))
-                        .on('error', () => listener("error"))
+                        .on('error', () => listener("error"));
                 }
             } else if (toToken == 'eth') {
                 // swap tokens to eth
@@ -275,7 +280,7 @@ final Map<String, dynamic> paths;
                             from: this.account
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
                 } else {
                     // only uniswap
 
@@ -284,7 +289,7 @@ final Map<String, dynamic> paths;
                             from: this.account
                         }).once('transactionHash', () => listener("transactionHash"))
                         .once('receipt', () => listener("receipt"))
-                        .once('error', () => listener("error"))
+                        .once('error', () => listener("error"));
                 }
 
             } else {
@@ -303,7 +308,7 @@ final Map<String, dynamic> paths;
                                     from: this.account
                                 }).once('transactionHash', () => listener("transactionHash"))
                                 .once('receipt', () => listener("receipt"))
-                                .once('error', () => listener("error"))
+                                .once('error', () => listener("error"));
                         }
                     }
                     if (indexOfDeus > 0) {
@@ -315,7 +320,7 @@ final Map<String, dynamic> paths;
                                     from: this.account
                                 }).once('transactionHash', () => listener("transactionHash"))
                                 .once('receipt', () => listener("receipt"))
-                                .once('error', () => listener("error"))
+                                .once('error', () => listener("error"));
                         }
                     }
                 }
@@ -324,13 +329,13 @@ final Map<String, dynamic> paths;
                         from: this.account
                     }).once('transactionHash', () => listener("transactionHash"))
                     .once('receipt', () => listener("receipt"))
-                    .once('error', () => listener("error"))
+                    .once('error', () => listener("error"));
             }
         }
     }
 
     getWithdrawableAmount() {
-        if (!this.checkWallet()) return 0
+        if (!this.checkWallet()) return 0;
         return this.AutomaticMarketMakerContract.methods.payments(this.account).call().then((amount)  {
             return this._fromWei(amount, 'ether');
         });
@@ -343,13 +348,13 @@ final Map<String, dynamic> paths;
             .send({ from: this.account })
             .once('transactionHash', () => listener("transactionHash"))
             .once('receipt', () => listener("receipt"))
-            .once('error', () => listener("error"))
+            .once('error', () => listener("error"));
     }
 
     getAmountsOut(fromToken, toToken, amountIn) {
         if (!this.checkWallet()) return 0;
 
-        var path = paths[fromToken][toToken];
+        List<String> path = paths[fromToken][toToken];
 
         if (this.getTokenAddr(fromToken) == this.getTokenAddr("deus") && this.getTokenAddr(toToken) == this.getTokenAddr("eth")) {
             return this.AutomaticMarketMakerContract.methods.calculateSaleReturn(this._getWei(amountIn, fromToken)).call()
@@ -392,23 +397,23 @@ final Map<String, dynamic> paths;
                     }
                     );
             }
-            path = path.slice(1)
+            path = path.slice(1);
             if (path[1] == this.getTokenAddr("weth")) {
                 return this.StaticSalePrice.methods.calculateSaleReturn(this._getWei(amountIn, fromToken)).call()
                     .then((tokenAmount) {
                         return this.AutomaticMarketMakerContract.methods.calculateSaleReturn(tokenAmount[0]).call()
                             .then((etherAmount)  {
-                                path = path.slice(1)
+                                path = path.slice(1);
                                 if (path.length < 2) {
-                                    return this._fromWei(etherAmount, toToken)
+                                    return this._fromWei(etherAmount, toToken);
                                 } else {
                                     return this.uniswapRouter.methods.getAmountsOut(etherAmount, path).call()
                                         .then((amountsOut) {
                                             return this._fromWei(amountsOut[amountsOut.length - 1], toToken);
-                                        })
+                                        });
                                 }
-                            })
-                    })
+                            });
+                    });
 
             } else {
                 return this.StaticSalePrice.methods.calculateSaleReturn(this._getWei(amountIn, fromToken)).call()
@@ -457,7 +462,7 @@ final Map<String, dynamic> paths;
                             .then((tokenAmount) {
                                 return this._fromWei(tokenAmount[0], toToken);
                             });
-                    })
+                    });
             }
         } else {
             
@@ -466,7 +471,7 @@ final Map<String, dynamic> paths;
                 return this.uniswapRouter.methods.getAmountsOut(this._getWei(amountIn, fromToken), path).call()
                     .then((amountsOut) {
                         return this._fromWei(amountsOut[amountsOut.length - 1], toToken);
-                    })
+                    });
             } else {
                 if (indexOfDeus == path.length - 1) {
                     if (path[path.length - 2] == this.getTokenAddr("weth")) {
@@ -476,13 +481,13 @@ final Map<String, dynamic> paths;
                                 return this.AutomaticMarketMakerContract.methods.calculatePurchaseReturn(amountsOut[amountsOut.length - 1]).call()
                                     .then((tokenAmount) {
                                         return this._fromWei(tokenAmount, toToken);
-                                    })
-                            })
+                                    });
+                            });
                     } else {
                         return this.uniswapRouter.methods.getAmountsOut(this._getWei(amountIn, fromToken), path).call()
                             .then((amountsOut) {
                                 return this._fromWei(amountsOut[amountsOut.length - 1], toToken);
-                            })
+                            });
 
                     }
                 } else if (indexOfDeus == 0) {
@@ -503,8 +508,8 @@ final Map<String, dynamic> paths;
                     }
                 } else {
                     if (path[indexOfDeus - 1] == this.getTokenAddr("weth")) {
-                        var path1 = path.slice(0, indexOfDeus)
-                        var path2 = path.slice(indexOfDeus)
+                        var path1 = path.slice(0, indexOfDeus);
+                        var path2 = path.slice(indexOfDeus);
                         if (path1.length > 1) {
                             return this.uniswapRouter.methods.getAmountsOut(this._getWei(amountIn, fromToken), path1).call()
                                 .then((amountsOut2) {
@@ -527,11 +532,11 @@ final Map<String, dynamic> paths;
                                         return this.uniswapRouter.methods.getAmountsOut(tokenAmount, path2).call()
                                             .then((amountsOut) {
                                                 return this._fromWei(amountsOut[amountsOut.length - 1], toToken);
-                                            })
+                                            });
                                     } else {
                                         return this._fromWei(tokenAmount, toToken);
                                     }
-                                })
+                                });
 
                         }
 
@@ -560,11 +565,11 @@ final Map<String, dynamic> paths;
                                         return this.uniswapRouter.methods.getAmountsOut(tokenAmount, path2).call()
                                             .then((amountsOut) {
                                                 return this._fromWei(amountsOut[amountsOut.length - 1], toToken);
-                                            })
+                                            });
                                     } else {
                                         return this._fromWei(tokenAmount, toToken);
                                     }
-                                })
+                                });
 
                         }
                     } else {
@@ -579,10 +584,10 @@ final Map<String, dynamic> paths;
     }
 
     getAmountsIn(fromToken, toToken, amountOut) {
-        // if (!this.checkWallet()) return 0
+        // if (!this.checkWallet()) return 0;
         return -1;
         // console.log(fromToken, toToken, amountOut);
-        // var path = paths[fromToken][toToken];
+        // List<String> path = paths[fromToken][toToken];
         // return this.uniswapRouter.methods.getAmountsIn(this._getWei(amountOut, fromToken), path).call()
         //     .then((amountsIn) {
         //         return this._fromWei(amountsIn[amountsIn.length - 2], toToken);
@@ -591,11 +596,11 @@ final Map<String, dynamic> paths;
     }
 
     approveStocks(amount, listener) {
-        if (!this.checkWallet()) return 0
+        if (!this.checkWallet()) return 0;
 
         var metamaskWeb3 = new Web3(Web3.givenProvider);
         const TokenContract = new metamaskWeb3.eth.Contract(abis["token"], this.getTokenAddr("dai"));
-        amount = Math.max(amount, 10 ** 20);
+        amount = Math.max(amount, 10 ^ 20);
 
         return TokenContract.methods.approve(this.getAddr("stocks_contract"), this._getWei(amount, "ether"))
             .send({ from: this.account })
@@ -607,8 +612,8 @@ final Map<String, dynamic> paths;
     getAllowancesStocks() {
         if (!this.checkWallet()) return 0;
 
-        const account = this.account;
-        const TokenContract = new this.infuraWeb3.eth.Contract(abis["token"], this.getTokenAddr("dai"))
+        final account = this.account;
+        const TokenContract = new this.infuraWeb3.eth.Contract(abis["token"], this.getTokenAddr("dai"));
         return TokenContract.methods.allowance(account, this.getAddr("stocks_contract"))
             .call().then((amount) {
                 var result = this._fromWei(amount, 'dai');
@@ -625,7 +630,7 @@ final Map<String, dynamic> paths;
             .send({ from: this.account })
             .once('transactionHash', () => listener("transactionHash"))
             .once('receipt', () => listener("receipt"))
-            .once('error', () => listener("error"))
+            .once('error', () => listener("error"));
 
     }
 
@@ -638,7 +643,7 @@ final Map<String, dynamic> paths;
             .send({ from: this.account })
             .once('transactionHash', () => listener("transactionHash"))
             .once('receipt', () => listener("receipt"))
-            .once('error', () => listener("error"))
+            .once('error', () => listener("error"));
 
     }
 }
