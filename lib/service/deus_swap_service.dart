@@ -1,35 +1,52 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+
+import 'package:etherwallet/utils/contract_parser.dart';
+import 'package:flutter/services.dart';
 import 'package:web3dart/web3dart.dart';
-import '../data_source/abis.json' as abis;
-import '../data_source/addresses.json' as addresses;
-import '../data_source/graphbk.json' as paths;
+
+import 'package:web_socket_channel/io.dart';
 
 class SwapService {
 
-String     account;
-int chainId;
-String INFURA_URL;
-String infuraWeb3;
-DeployedContract  AutomaticMarketMakerContract;
-DeployedContract  StaticSalePrice;
-DeployedContract  DeusSwapContract;
-DeployedContract  uniswapRouter;
+final String account;
+final int chainId;
+
+final Map<String, dynamic> addrs;
+final Map<String, dynamic> abis;
+final Map<String, dynamic> paths;
+ String INFURA_URL;
+ Web3Client infuraWeb3;
+ DeployedContract  AutomaticMarketMakerContract;
+ DeployedContract  StaticSalePrice;
+ DeployedContract  DeusSwapContract;
+ DeployedContract  uniswapRouter;
+
+    // static getAddrs() async {
+    //   SwapService.addrs = jsonDecode(await rootBundle.loadString('lib/data_source/addresses.json'));
+    // }
 
 
-    SwapService(String account, int chainId) {
-        this.account = account;
-        this.chainId = chainId;
-        this.INFURA_URL = 'wss://' + this.getNetworkName() + '.infura.io/ws/v3/cf6ea736e00b4ee4bc43dfdb68f51093';
-        this.infuraWeb3 = new Web3(new Web3.providers.WebsocketProvider(this.INFURA_URL));
-        this.AutomaticMarketMakerContract = new this.infuraWeb3.eth.Contract(abis["amm"], this.getAddr("amm"));
-        this.StaticSalePrice =  new this.infuraWeb3.eth.Contract(abis["sps"], this.getAddr("sps"));
-        this.DeusSwapContract = new this.infuraWeb3.eth.Contract(abis["deus_swap_contract"], this.getAddr("deus_swap_contract"));
-        this.uniswapRouter = new this.infuraWeb3.eth.Contract(abis["uniswap_router"], this.getAddr("uniswap_router"));
-    }
-
-    bool _isDeus(String element) => element == this.getTokenAddr("deus");
-
-    bool checkWallet() => this.account!=null && this.chainId!=null;
-
+    SwapService(String account, int chainId ) :
+        
+        this.account = account,
+        this.chainId = chainId,
+        this.addrs = jsonDecode(File("lib/data_source/addresses.json").readAsStringSync()),
+        this.abis = jsonDecode("lib/data_source/abis.json"),
+        this.paths = jsonDecode("lib/data_source/graphbk.json"),
+        
+        this.INFURA_URL = _getInfuraURL(chainId) ,
+        this.infuraWeb3 = Web3Client('http://' + _getInfuraURL(chainId), http.Client(), socketConnector: () => IOWebSocketChannel.connect('wss://' + _getInfuraURL(chainId)).cast<String>()) //new Web3(new Web3.providers.WebsocketProvider('wss://' + this.INFURA_URL));
+        {
+        this.AutomaticMarketMakerContract = DeployedContract(abis["amm"], this.getAddr("amm")); // this.infuraWeb3.eth.Contract(abis["amm"], this.getAddr("amm"));
+        this.StaticSalePrice = DeployedContract(abis["sps"], this.getAddr("sps")); //  this.infuraWeb3.eth.Contract(abis["sps"], this.getAddr("sps"));
+        this.DeusSwapContract= DeployedContract(abis["deus_swap_contract"], this.getAddr("deus_swap_contract"));  // this.infuraWeb3.eth.Contract(abis["deus_swap_contract"], this.getAddr("deus_swap_contract"));
+        this.uniswapRouter= DeployedContract(abis["uniswap_router"], this.getAddr("uniswap_router")); // this.infuraWeb3.eth.Contract(abis["uniswap_router"], this.getAddr("uniswap_router"));
+    
+        }
+        
+    static _getInfuraURL(int chainId) => _getNetworkName(chainId) + '.infura.io/ws/v3/cf6ea736e00b4ee4bc43dfdb68f51093';
     static const Map<int, String> networkNames = {
         1: "Mainnet",
         3: "Ropsten",
@@ -37,7 +54,11 @@ DeployedContract  uniswapRouter;
         42: "Kovan",
     };
 
-    getNetworkName() => SwapService.networkNames[this.chainId];
+    static _getNetworkName(int chainId) => SwapService.networkNames[chainId];
+
+    bool _isDeus(String element) => element == this.getTokenAddr("deus");
+
+    bool checkWallet() => this.account!=null && this.chainId!=null;
 
     getAddr(String tokenName) => addrs[tokenName][this.chainId.toString()];
 
@@ -55,7 +76,7 @@ DeployedContract  uniswapRouter;
     };
 
     String _getWei(dynamic number, [token = "eth"]) {
-        var max = SwapService.TokensMaxDigit.containsKey(token) ? this.TokensMaxDigit[token] : 18;
+        var max = SwapService.TokensMaxDigit.containsKey(token) ? SwapService.TokensMaxDigit[token] : 18;
         var value = number.runtimeType == String  ? double.parse(number).toStringAsFixed(18): number.toStringAsFixed(18);
         var ans = Web3.utils.toWei(value.toString(), 'ether');
         ans = ans.substr(0, ans.length - (18 - max));
@@ -63,9 +84,9 @@ DeployedContract  uniswapRouter;
     }
 
     String _fromWei(value, token) {
-        var max = this.TokensMaxDigit[token] ? this.TokensMaxDigit[token] : 18;
+        var max = SwapService.TokensMaxDigit.containsKey(token) ? SwapService.TokensMaxDigit[token] : 18;
         var ans;
-        if (value.runtimeType  != String) {
+        if (value.runtimeType != String) {
             ans = value.toString();
         } else {
             ans = value;
@@ -609,7 +630,7 @@ DeployedContract  uniswapRouter;
     }
 
     sellStock(stockAddr, amount, blockNo, v, r, s, price, fee, listener) {
-        if (!this.checkWallet()) return 0
+        if (!this.checkWallet()) return 0;
 
         var metamaskWeb3 = new Web3(Web3.givenProvider);
         const StocksContract = new metamaskWeb3.eth.Contract(abis["stocks_contract"], this.getAddr("stocks_contract"));
