@@ -4,6 +4,8 @@ import 'package:etherwallet/model/wallet_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
+import 'components/AppBarBackButton/app_bar_back_button.dart';
+
 class WalletImportPage extends HookWidget {
   WalletImportPage(this.title);
 
@@ -14,18 +16,8 @@ class WalletImportPage extends HookWidget {
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 100,
-        leading: GestureDetector(
+        leading: AppBarBackButton(
           onTap: () => Navigator.pop(context),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_back_ios_rounded),
-              Text(
-                'BACK',
-                overflow: TextOverflow.clip,
-              )
-            ],
-          ),
         ),
         backgroundColor: Colors.black,
         centerTitle: true,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
+import 'components/AppBarBackButton/app_bar_back_button.dart';
 import 'components/wallet/confirm_mnemonic.dart';
 import 'components/wallet/display_mnemonic.dart';
 import 'context/setup/wallet_setup_provider.dart';
@@ -17,20 +18,10 @@ class WalletCreatePage extends HookWidget {
     return Scaffold(
       appBar: AppBar(
         leadingWidth: 100,
-        leading: GestureDetector(
+        leading: AppBarBackButton(
           onTap: store.state.step == WalletCreateSteps.display
               ? () => Navigator.pop(context)
               : () => store.goto(WalletCreateSteps.display),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_back_ios_rounded),
-              Text(
-                'BACK',
-                overflow: TextOverflow.clip,
-              )
-            ],
-          ),
         ),
         backgroundColor: Colors.black,
         centerTitle: true,

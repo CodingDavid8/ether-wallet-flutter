@@ -3,15 +3,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class PaperInput extends StatelessWidget {
-  PaperInput(
-      {this.labelText,
-      this.hintText,
-      this.errorText,
-      this.onChanged,
-      this.controller,
-      this.maxLines,
-      this.obscureText = false,
-      });
+  PaperInput({
+    this.labelText,
+    this.hintText,
+    this.errorText,
+    this.onChanged,
+    this.controller,
+    this.maxLines,
+    this.obscureText = false,
+    this.textStyle
+  });
 
   final ValueChanged<String> onChanged;
   final String errorText;
@@ -20,6 +21,7 @@ class PaperInput extends StatelessWidget {
   final bool obscureText;
   final int maxLines;
   final TextEditingController controller;
+  final TextStyle textStyle;
 
   final Color borderColor = Color(0xFF282828);
 
@@ -27,9 +29,11 @@ class PaperInput extends StatelessWidget {
     borderRadius: BorderRadius.circular(10.0),
     borderSide: BorderSide(color: Color(0xFF282828)),
   );
+
   @override
   Widget build(BuildContext context) {
     return TextField(
+      style: this.textStyle,
       obscureText: this.obscureText,
       controller: this.controller,
       onChanged: this.onChanged,

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:etherwallet/components/RaisedGradientButton/raised_gradient_button.dart';
 import 'package:etherwallet/components/form/paper_form.dart';
 import 'package:etherwallet/components/form/paper_input.dart';
 import 'package:etherwallet/components/form/paper_validation_summary.dart';
@@ -34,26 +35,13 @@ class ImportWalletForm extends HookWidget {
         child: SingleChildScrollView(
           child: PaperForm(
             actionButtons: <Widget>[
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                      gradient: button_gradient,
-                      borderRadius: BorderRadius.circular(10)),
-                  height: 55,
-                  child: RaisedButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    color: Colors.transparent,
-                    child: Text(
-                      "IMPORT",
-                      style: TextStyle(fontSize: 20, color: Colors.black),
-                    ),
-                    onPressed: this.onImport != null
-                        ? () => this.onImport(
-                            importType.value, inputController.value.text)
-                        : null,
-                  ),
-                ),
+              RaisedGradientButton(
+                gradient: button_gradient,
+                label: 'IMPORT',
+                onPressed: this.onImport != null
+                    ? () => this
+                        .onImport(importType.value, inputController.value.text)
+                    : null,
               )
             ],
             children: <Widget>[
@@ -67,10 +55,12 @@ class ImportWalletForm extends HookWidget {
                         padding: const EdgeInsets.only(right: 20),
                         child: Text(
                           'Seed',
-                          style:TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             color: Colors.transparent,
-                            decoration: _selections.value[0] ? TextDecoration.underline: null,
+                            decoration: _selections.value[0]
+                                ? TextDecoration.underline
+                                : null,
                             decorationColor: Colors.white,
                             shadows: [
                               Shadow(color: Colors.white, offset: Offset(0, -5))
@@ -83,7 +73,9 @@ class ImportWalletForm extends HookWidget {
                         style: TextStyle(
                           fontSize: 15,
                           color: Colors.transparent,
-                          decoration:_selections.value[1] ? TextDecoration.underline: null,
+                          decoration: _selections.value[1]
+                              ? TextDecoration.underline
+                              : null,
                           decorationColor: Colors.white,
                           shadows: [
                             Shadow(color: Colors.white, offset: Offset(0, -5))
