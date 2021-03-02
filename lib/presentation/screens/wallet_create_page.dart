@@ -1,3 +1,4 @@
+import 'package:etherwallet/components/AppBarBackButton/app_bar_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -16,7 +17,18 @@ class WalletCreatePage extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        leadingWidth: 100,
+        leading: AppBarBackButton(
+          onTap: store.state.step == WalletCreateSteps.display
+              ? () => Navigator.pop(context)
+              : () => store.goto(WalletCreateSteps.display),
+        ),
+        backgroundColor: Colors.black,
+        centerTitle: true,
+        title: Text(
+          title,
+          style: TextStyle(fontSize: 25),
+        ),
       ),
       body: store.state.step == WalletCreateSteps.display
           ? DisplayMnemonic(

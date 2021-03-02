@@ -1,5 +1,7 @@
+import 'package:etherwallet/components/AppBarBackButton/app_bar_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
 
 import '../components/wallet/import_wallet_form.dart';
 import '../../context/setup/wallet_setup_provider.dart';
@@ -14,7 +16,16 @@ class WalletImportPage extends HookWidget {
     var store = useWalletSetup(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        leadingWidth: 100,
+        leading: AppBarBackButton(
+          onTap: () => Navigator.pop(context),
+        ),
+        backgroundColor: Colors.black,
+        centerTitle: true,
+        title: Text(
+          title,
+          style: TextStyle(fontSize: 25),
+        ),
       ),
       body: ImportWalletForm(
         errors: store.state.errors.toList(),
@@ -30,7 +41,6 @@ class WalletImportPage extends HookWidget {
                   default:
                     break;
                 }
-
                 Navigator.of(context).popAndPushNamed("/");
               }
             : null,

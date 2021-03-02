@@ -1,5 +1,8 @@
+import 'package:etherwallet/components/RaisedGradientButton/raised_gradient_button.dart';
+import 'package:etherwallet/components/grey_outline_button/grey_outline_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../copyButton/copy_button.dart';
@@ -9,45 +12,92 @@ class DisplayMnemonic extends HookWidget {
 
   final String mnemonic;
   final Function onNext;
+  final darkGrey = Color(0xFF1C1C1C);
+  final borderColor = Color(0xFF282828);
+
+  final LinearGradient button_gradient =
+      LinearGradient(colors: [Color(0xFF0779E4), Color(0xFF1DD3BD)]);
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        margin: EdgeInsets.all(25),
-        child: SingleChildScrollView(
-          child: Column(
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 15),
+      child: Stack(
+        children: [
+          _buildHeader(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                "Get a piece of papper, write down your seed phrase and keep it safe. This is the only way to recover your funds.",
-                textAlign: TextAlign.center,
-              ),
-              Container(
-                margin: EdgeInsets.all(25),
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(border: Border.all()),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, bottom: 5),
                 child: Text(
-                  this.mnemonic,
-                  textAlign: TextAlign.center,
+                  'Seed Phrase',
+                  style: TextStyle(fontSize: 12),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  CopyButton(
-                    text: const Text('Copy'),
-                    value: this.mnemonic,
-                  ),
-                  RaisedButton(
-                    child: const Text('Next'),
-                    onPressed: this.onNext,
-                  )
-                ],
-              )
+              _buildSeedPhraseContainer(),
+              SizedBox(
+                height: 15,
+              ),
+              _buildButtons()
             ],
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  Container _buildSeedPhraseContainer() {
+    return Container(
+      padding: EdgeInsets.only(top: 12, left: 12, right: 12, bottom: 30),
+      decoration: BoxDecoration(
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(10),
+          color: darkGrey),
+      child: Text(
+        this.mnemonic,
+        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 15),
+      ),
+    );
+  }
+
+  Row _buildButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        RaisedGradientButton(
+          label: 'COPY',
+          onPressed: () {
+            Clipboard.setData(new ClipboardData(text: this.mnemonic));
+          },
+          gradient: button_gradient,
+        ),
+        SizedBox(
+          width: 10,
+        ),
+        GreyOutlineButton(
+          label: 'NEXT',
+          onPressed: this.onNext,
+        ),
+      ],
+    );
+  }
+
+  Column _buildHeader() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 20,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 50),
+          child: Text(
+            "Get a piece of papper, write down your seed phrase and keep it safe. This is the only way to recover your funds.",
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }

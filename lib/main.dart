@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:etherwallet/app_config.dart';
 import 'package:etherwallet/router.dart';
 import 'package:etherwallet/services_provider.dart';
@@ -32,7 +34,9 @@ class MainApp extends StatelessWidget {
             FirebaseAnalyticsObserver(analytics: analytics),
           ],
           theme: ThemeData(
+            canvasColor: Colors.black,
             primarySwatch: Colors.blue,
+            textTheme: TextTheme(bodyText2: TextStyle(color: Colors.white)),
             buttonTheme: ButtonThemeData(
               buttonColor: Colors.blue,
               textTheme: ButtonTextTheme.primary,
