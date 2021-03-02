@@ -1,12 +1,16 @@
 import 'dart:ui';
 
 import 'package:etherwallet/components/RaisedGradientButton/raised_gradient_button.dart';
-import 'package:etherwallet/components/form/paper_form.dart';
-import 'package:etherwallet/components/form/paper_input.dart';
-import 'package:etherwallet/components/form/paper_validation_summary.dart';
+
 import 'package:etherwallet/model/wallet_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
+import '../../../model/wallet_setup.dart';
+import '../form/paper_form.dart';
+import '../form/paper_input.dart';
+import '../form/paper_radio.dart';
+import '../form/paper_validation_summary.dart';
 
 class ImportWalletForm extends HookWidget {
   ImportWalletForm({this.onImport, this.errors});
@@ -19,8 +23,7 @@ class ImportWalletForm extends HookWidget {
     var importType = useState(WalletImportType.mnemonic);
     var inputController = useTextEditingController();
 
-    final LinearGradient button_gradient =
-        LinearGradient(colors: [Color(0xFF0779E4), Color(0xFF1DD3BD)]);
+    final LinearGradient button_gradient = LinearGradient(colors: [Color(0xFF0779E4), Color(0xFF1DD3BD)]);
 
     final _selections = useState([true, false]);
 
@@ -38,10 +41,8 @@ class ImportWalletForm extends HookWidget {
               RaisedGradientButton(
                 gradient: button_gradient,
                 label: 'IMPORT',
-                onPressed: this.onImport != null
-                    ? () => this
-                        .onImport(importType.value, inputController.value.text)
-                    : null,
+                onPressed:
+                    this.onImport != null ? () => this.onImport(importType.value, inputController.value.text) : null,
               )
             ],
             children: <Widget>[
@@ -58,13 +59,9 @@ class ImportWalletForm extends HookWidget {
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.transparent,
-                            decoration: _selections.value[0]
-                                ? TextDecoration.underline
-                                : null,
+                            decoration: _selections.value[0] ? TextDecoration.underline : null,
                             decorationColor: Colors.white,
-                            shadows: [
-                              Shadow(color: Colors.white, offset: Offset(0, -5))
-                            ],
+                            shadows: [Shadow(color: Colors.white, offset: Offset(0, -5))],
                           ),
                         ),
                       ),
@@ -73,13 +70,9 @@ class ImportWalletForm extends HookWidget {
                         style: TextStyle(
                           fontSize: 15,
                           color: Colors.transparent,
-                          decoration: _selections.value[1]
-                              ? TextDecoration.underline
-                              : null,
+                          decoration: _selections.value[1] ? TextDecoration.underline : null,
                           decorationColor: Colors.white,
-                          shadows: [
-                            Shadow(color: Colors.white, offset: Offset(0, -5))
-                          ],
+                          shadows: [Shadow(color: Colors.white, offset: Offset(0, -5))],
                         ),
                       )
                     ],
@@ -94,23 +87,17 @@ class ImportWalletForm extends HookWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 15, bottom: 5),
                     child: Text(
-                      importType.value == WalletImportType.privateKey
-                          ? 'Private Key'
-                          : 'Seed Phrase',
+                      importType.value == WalletImportType.privateKey ? 'Private Key' : 'Seed Phrase',
                       style: TextStyle(color: Colors.white.withOpacity(0.5)),
                     ),
                   ),
                   Visibility(
                       child: fieldForm(
-                          label: 'Private Key',
-                          hintText: 'Type your private key',
-                          controller: inputController),
+                          label: 'Private Key', hintText: 'Type your private key', controller: inputController),
                       visible: importType.value == WalletImportType.privateKey),
                   Visibility(
                       child: fieldForm(
-                          label: 'Seed phrase',
-                          hintText: 'Type your seed phrase',
-                          controller: inputController),
+                          label: 'Seed phrase', hintText: 'Type your seed phrase', controller: inputController),
                       visible: importType.value == WalletImportType.mnemonic),
                 ],
               ),

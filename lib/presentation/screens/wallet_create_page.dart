@@ -1,11 +1,11 @@
+import 'package:etherwallet/components/AppBarBackButton/app_bar_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-import 'components/AppBarBackButton/app_bar_back_button.dart';
-import 'components/wallet/confirm_mnemonic.dart';
-import 'components/wallet/display_mnemonic.dart';
-import 'context/setup/wallet_setup_provider.dart';
-import 'model/wallet_setup.dart';
+import '../components/wallet/confirm_mnemonic.dart';
+import '../components/wallet/display_mnemonic.dart';
+import '../../context/setup/wallet_setup_provider.dart';
+import '../../model/wallet_setup.dart';
 
 class WalletCreatePage extends HookWidget {
   WalletCreatePage(this.title);
